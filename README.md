@@ -13,7 +13,7 @@ Prior to building or installing this JMeter plugin, ensure that the RabbitMQ cli
 Build Dependencies
 ------------------
 
-Build dependencies are managed by Maven.
+Build dependencies are managed by Maven.<br>
 JARs should automatically be downloaded by Maven as part of the build process.
 
 In addition, you'll need to copy or symlink the following from JMeter's lib/ext directory:
@@ -22,10 +22,12 @@ In addition, you'll need to copy or symlink the following from JMeter's lib/ext 
 Building
 --------
 
-The project is built using Maven.
+The project is built using Maven.<br>
 To execute the build script, just execute:
-    maven package
 
+```
+maven package
+```
 
 Installing
 ----------
