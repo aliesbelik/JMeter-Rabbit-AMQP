@@ -3,6 +3,7 @@ package com.zeroclue.jmeter.protocol.amqp;
 import java.io.IOException;
 import java.util.*;
 import java.security.*;
+import java.util.concurrent.TimeoutException;
 
 import com.rabbitmq.client.*;
 import org.apache.jmeter.samplers.AbstractSampler;
@@ -65,46 +66,52 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
     protected boolean initChannel() throws IOException, NoSuchAlgorithmException, KeyManagementException {
         Channel channel = getChannel();
 
-        if(channel != null && !channel.isOpen()){
-            log.warn("channel " + channel.getChannelNumber()
-                    + " closed unexpectedly: ", channel.getCloseReason());
-            channel = null; // so we re-open it below
+        try {
+            if(channel != null && !channel.isOpen()){
+                log.warn("channel " + channel.getChannelNumber()
+                        + " closed unexpectedly: ", channel.getCloseReason());
+                channel = null; // so we re-open it below
+            }
+
+            if(channel == null) {
+                channel = createChannel();
+                setChannel(channel);
+
+                //TODO: Break out queue binding
+                boolean queueConfigured = (getQueue() != null && !getQueue().isEmpty());
+
+                if(queueConfigured) {
+                    if (getQueueRedeclare()) {
+                        deleteQueue();
+                    }
+
+                    AMQP.Queue.DeclareOk declareQueueResp = channel.queueDeclare(getQueue(), queueDurable(), queueExclusive(), queueAutoDelete(), getQueueArguments());
+                }
+
+                if(!StringUtils.isBlank(getExchange())) { //Use a named exchange
+                    if (getExchangeRedeclare()) {
+                        deleteExchange();
+                    }
+
+                    AMQP.Exchange.DeclareOk declareExchangeResp = channel.exchangeDeclare(getExchange(), getExchangeType(), getExchangeDurable());
+                    if (queueConfigured) {
+                        channel.queueBind(getQueue(), getExchange(), getRoutingKey());
+                    }
+                }
+
+                log.info("bound to:"
+                    +"\n\t queue: " + getQueue()
+                    +"\n\t exchange: " + getExchange()
+                    +"\n\t exchange(D)? " + getExchangeDurable()
+                    +"\n\t routing key: " + getRoutingKey()
+                    +"\n\t arguments: " + getQueueArguments()
+                    );
+
+            }
         }
-
-        if(channel == null) {
-            channel = createChannel();
-            setChannel(channel);
-
-            //TODO: Break out queue binding
-            boolean queueConfigured = (getQueue() != null && !getQueue().isEmpty());
-
-            if(queueConfigured) {
-                if (getQueueRedeclare()) {
-                    deleteQueue();
-                }
-
-                AMQP.Queue.DeclareOk declareQueueResp = channel.queueDeclare(getQueue(), queueDurable(), queueExclusive(), queueAutoDelete(), getQueueArguments());
-            }
-
-            if(!StringUtils.isBlank(getExchange())) { //Use a named exchange
-                if (getExchangeRedeclare()) {
-                    deleteExchange();
-                }
-
-                AMQP.Exchange.DeclareOk declareExchangeResp = channel.exchangeDeclare(getExchange(), getExchangeType(), getExchangeDurable());
-                if (queueConfigured) {
-                    channel.queueBind(getQueue(), getExchange(), getRoutingKey());
-                }
-            }
-
-        log.info("bound to:"
-                +"\n\t queue: " + getQueue()
-                +"\n\t exchange: " + getExchange()
-                +"\n\t exchange(D)? " + getExchangeDurable()
-                +"\n\t routing key: " + getRoutingKey()
-                +"\n\t arguments: " + getQueueArguments()
-                );
-
+        catch(Exception ex) {
+            log.debug(ex.toString(), ex);
+            // ignore it.
         }
         return true;
     }
@@ -395,45 +402,56 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
     }
 
     protected Channel createChannel() throws IOException, NoSuchAlgorithmException, KeyManagementException {
-        log.info("Creating channel " + getVirtualHost()+":"+getPortAsInt());
+         log.info("Creating channel " + getVirtualHost() + ":" + getPortAsInt());
 
-         if (connection == null || !connection.isOpen()) {
-            factory.setConnectionTimeout(getTimeoutAsInt());
-            factory.setVirtualHost(getVirtualHost());
-            factory.setUsername(getUsername());
-            factory.setPassword(getPassword());
-            if (connectionSSL()) {
-                factory.useSslProtocol("TLS");
-            }
+         try {
+             if (connection == null || !connection.isOpen()) {
+                factory.setConnectionTimeout(getTimeoutAsInt());
+                factory.setVirtualHost(getVirtualHost());
+                factory.setUsername(getUsername());
+                factory.setPassword(getPassword());
 
-            log.info("RabbitMQ ConnectionFactory using:"
-                  +"\n\t virtual host: " + getVirtualHost()
-                  +"\n\t host: " + getHost()
-                  +"\n\t port: " + getPort()
-                  +"\n\t username: " + getUsername()
-                  +"\n\t password: " + getPassword()
-                  +"\n\t timeout: " + getTimeout()
-                  +"\n\t heartbeat: " + factory.getRequestedHeartbeat()
-                  +"\nin " + this
-                  );
+                if (connectionSSL()) {
+                    factory.useSslProtocol("TLS");
+                }
 
-            String[] hosts = getHost().split(",");
-            Address[] addresses = new Address[hosts.length];
-            for (int i = 0; i < hosts.length; i++) {
-                addresses[i] = new Address(hosts[i], getPortAsInt());
-            }
-            log.info("Using hosts: " + Arrays.toString(hosts) + " addresses: " + Arrays.toString(addresses));
-            connection = factory.newConnection(addresses);
+                log.info("RabbitMQ ConnectionFactory using:"
+                      +"\n\t virtual host: " + getVirtualHost()
+                      +"\n\t host: " + getHost()
+                      +"\n\t port: " + getPort()
+                      +"\n\t username: " + getUsername()
+                      +"\n\t password: " + getPassword()
+                      +"\n\t timeout: " + getTimeout()
+                      +"\n\t heartbeat: " + factory.getRequestedHeartbeat()
+                      +"\nin " + this
+                      );
+
+                String[] hosts = getHost().split(",");
+                Address[] addresses = new Address[hosts.length];
+
+                for (int i = 0; i < hosts.length; i++) {
+                    addresses[i] = new Address(hosts[i], getPortAsInt());
+                }
+
+                log.info("Using hosts: " + Arrays.toString(hosts) + " addresses: " + Arrays.toString(addresses));
+                connection = factory.newConnection(addresses);
+             }
+
+             Channel channel = connection.createChannel();
+
+             if(!channel.isOpen()){
+                 log.fatalError("Failed to open channel: " + channel.getCloseReason().getLocalizedMessage());
+             }
+
+             return channel;
          }
-
-         Channel channel = connection.createChannel();
-         if(!channel.isOpen()){
-             log.fatalError("Failed to open channel: " + channel.getCloseReason().getLocalizedMessage());
+         catch(Exception ex) {
+             log.debug(ex.toString(), ex);
+             return null;
          }
-        return channel;
     }
 
-    protected void deleteQueue() throws IOException, NoSuchAlgorithmException, KeyManagementException {
+    protected void deleteQueue() throws IOException, NoSuchAlgorithmException, KeyManagementException, TimeoutException {
         // use a different channel since channel closes on exception.
         Channel channel = createChannel();
         try {
@@ -451,7 +469,7 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
         }
     }
 
-    protected void deleteExchange() throws IOException, NoSuchAlgorithmException, KeyManagementException {
+    protected void deleteExchange() throws IOException, NoSuchAlgorithmException, KeyManagementException, TimeoutException {
         // use a different channel since channel closes on exception.
         Channel channel = createChannel();
         try {

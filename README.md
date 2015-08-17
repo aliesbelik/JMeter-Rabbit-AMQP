@@ -18,7 +18,6 @@ JARs should automatically be downloaded by Maven as part of the build process.
 
 In addition, you'll need to copy or symlink the following from JMeter's lib/ext directory:
 * ApacheJMeter_core.jar
-* jackson-mapper-asl jar
 
 Building
 --------
@@ -31,4 +30,4 @@ To execute the build script, just execute:
 Installing
 ----------
 
-To install the plugin, build the project and copy the generated jmeter-amqp.jar as well as the amqp-client and jackson-mapper-asl libraries file from target/dist to JMeter's lib/ext/ directory.
+To install the plugin, build the project and copy the generated JMeterAMQPSampler.jar from target/dist to JMeter's lib/ext/ directory.

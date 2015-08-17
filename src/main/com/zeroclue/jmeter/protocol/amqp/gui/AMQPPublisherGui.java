@@ -34,12 +34,12 @@ public class AMQPPublisherGui extends AMQPSamplerGui {
     private final FilePanel messageFile = new FilePanel("Filename", ALL_FILES);
     */
     private JLabeledTextArea message = new JLabeledTextArea("Message Content");
-    private JLabeledTextField messageRoutingKey = new JLabeledTextField("Routing Key");
-    private JLabeledTextField messageType = new JLabeledTextField("Message Type");
+    private JLabeledTextField messageRoutingKey = new JLabeledTextField("       Routing Key");
+    private JLabeledTextField messageType = new JLabeledTextField("  Message Type");
     private JLabeledTextField replyToQueue = new JLabeledTextField("Reply-To Queue");
-    private JLabeledTextField correlationId = new JLabeledTextField("Correlation Id");
-    private JLabeledTextField contentType = new JLabeledTextField("ContentType");
-    private JLabeledTextField messageId = new JLabeledTextField("Message Id");
+    private JLabeledTextField correlationId = new JLabeledTextField("     Correlation Id");
+    private JLabeledTextField contentType = new JLabeledTextField("     Content-Type");
+    private JLabeledTextField messageId = new JLabeledTextField("         Message Id");
 
     private JCheckBox persistent = new JCheckBox("Persistent?", AMQPPublisher.DEFAULT_PERSISTENT);
     private JCheckBox useTx = new JCheckBox("Use Transactions?", AMQPPublisher.DEFAULT_USE_TX);

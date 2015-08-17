@@ -17,6 +17,7 @@ import org.apache.log.Logger;
 
 import com.rabbitmq.client.Channel;
 
+
 /**
  * JMeter creates an instance of a sampler class for every occurrence of the
  * element in every thread. [some additional copies may be created before the
@@ -93,7 +94,6 @@ public class AMQPPublisher extends AMQPSampler implements Interruptible {
                 // seen by iostat -cd 1. TPS value remains at 0.
 
                 channel.basicPublish(getExchange(), getMessageRoutingKey(), messageProperties, messageBytes);
-
             }
 
             // commit the sample.
@@ -117,7 +117,7 @@ public class AMQPPublisher extends AMQPSampler implements Interruptible {
             result.setResponseMessage(ex.toString());
         }
         finally {
-            result.sampleEnd(); // End timimg
+            result.sampleEnd(); // End timing
         }
 
         return result;

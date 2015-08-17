@@ -16,7 +16,7 @@ public class AMQPConsumerGui extends AMQPSamplerGui {
     private static final long serialVersionUID = 1L;
 
     protected JLabeledTextField receiveTimeout = new JLabeledTextField("Receive Timeout");
-    protected JLabeledTextField prefetchCount = new JLabeledTextField("Prefetch Count");
+    protected JLabeledTextField prefetchCount = new JLabeledTextField("   Prefetch Count");
     private final JCheckBox purgeQueue = new JCheckBox("Purge Queue", false);
     private final JCheckBox autoAck = new JCheckBox("Auto ACK", true);
     private final JCheckBox readResponse = new JCheckBox("Read Response", AMQPConsumer.DEFAULT_READ_RESPONSE);
@@ -34,10 +34,7 @@ public class AMQPConsumerGui extends AMQPSamplerGui {
         super.init();
 
         mainPanel.add(readResponse);
-
-        prefetchCount.setPreferredSize(new Dimension(100,25));
         mainPanel.add(prefetchCount);
-
         mainPanel.add(receiveTimeout);
         mainPanel.add(purgeQueue);
         mainPanel.add(autoAck);
@@ -104,7 +101,6 @@ public class AMQPConsumerGui extends AMQPSamplerGui {
         sampler.setReceiveTimeout(receiveTimeout.getText());
         sampler.setPurgeQueue(purgeQueue.isSelected());
         sampler.setAutoAck(autoAck.isSelected());
-
     }
 
     /**
@@ -119,6 +115,5 @@ public class AMQPConsumerGui extends AMQPSamplerGui {
     protected void setMainPanel(JPanel panel) {
         mainPanel = panel;
     }
-
 
 }
