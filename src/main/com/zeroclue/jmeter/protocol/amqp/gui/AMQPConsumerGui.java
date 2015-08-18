@@ -97,7 +97,6 @@ public class AMQPConsumerGui extends AMQPSamplerGui {
 
         sampler.setReadResponse(readResponse.isSelected());
         sampler.setPrefetchCount(prefetchCount.getText());
-
         sampler.setReceiveTimeout(receiveTimeout.getText());
         sampler.setPurgeQueue(purgeQueue.isSelected());
         sampler.setAutoAck(autoAck.isSelected());

@@ -21,8 +21,8 @@ public abstract class AMQPSamplerGui extends AbstractSamplerGui {
 
     private static final Logger log = LoggingManager.getLoggerForClass();
 
-    protected JLabeledTextField exchange = new JLabeledTextField("Exchange");
-    protected JLabeledChoice exchangeType = new JLabeledChoice("Exchange Type", new String[]{ "direct", "topic", "headers", "fanout"});
+    protected JLabeledTextField exchange = new JLabeledTextField("      Exchange");
+    protected JLabeledChoice exchangeType = new JLabeledChoice("              Type", new String[]{ "direct", "topic", "headers", "fanout"});
     private final JCheckBox exchangeRedeclare = new JCheckBox("Redeclare?", AMQPSampler.DEFAULT_EXCHANGE_REDECLARE);
     private final JCheckBox exchangeDurable = new JCheckBox("Durable?", AMQPSampler.DEFAULT_EXCHANGE_DURABLE);
 
@@ -150,13 +150,11 @@ public abstract class AMQPSamplerGui extends AbstractSamplerGui {
     protected void init() {
         setLayout(new BorderLayout(0, 5));
         setBorder(makeBorder());
-        add(makeTitlePanel(), BorderLayout.NORTH); // Add the standard title
+        add(makeTitlePanel(), BorderLayout.NORTH);  // add the standard title
 
         JPanel mainPanel = new VerticalPanel();
 
         mainPanel.add(makeCommonPanel());
-
-        iterations.setPreferredSize(new Dimension(50,25));
         mainPanel.add(iterations);
 
         add(mainPanel);
@@ -179,7 +177,6 @@ public abstract class AMQPSamplerGui extends AbstractSamplerGui {
         gridBagConstraints.weightx = 0.5;
 
         JPanel commonPanel = new JPanel(new GridBagLayout());
-
 
         JPanel exchangeSettings = new JPanel(new GridBagLayout());
         exchangeSettings.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Exchange"));

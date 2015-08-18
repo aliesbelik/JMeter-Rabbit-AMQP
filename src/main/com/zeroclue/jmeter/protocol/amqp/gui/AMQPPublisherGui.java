@@ -1,7 +1,6 @@
 package com.zeroclue.jmeter.protocol.amqp.gui;
 
-import java.awt.Dimension;
-
+import java.awt.*;
 import javax.swing.*;
 
 import org.apache.jmeter.config.Arguments;
@@ -34,12 +33,13 @@ public class AMQPPublisherGui extends AMQPSamplerGui {
     private final FilePanel messageFile = new FilePanel("Filename", ALL_FILES);
     */
     private JLabeledTextArea message = new JLabeledTextArea("Message Content");
-    private JLabeledTextField messageRoutingKey = new JLabeledTextField("       Routing Key");
-    private JLabeledTextField messageType = new JLabeledTextField("  Message Type");
-    private JLabeledTextField replyToQueue = new JLabeledTextField("Reply-To Queue");
-    private JLabeledTextField correlationId = new JLabeledTextField("     Correlation Id");
-    private JLabeledTextField contentType = new JLabeledTextField("     Content-Type");
-    private JLabeledTextField messageId = new JLabeledTextField("         Message Id");
+    private JLabeledTextField messageRoutingKey = new JLabeledTextField("          Routing Key");
+    private JLabeledTextField messageType = new JLabeledTextField("     Message Type");
+    private JLabeledTextField replyToQueue = new JLabeledTextField("   Reply-To Queue");
+    private JLabeledTextField messageId = new JLabeledTextField("           Message ID");
+    private JLabeledTextField correlationId = new JLabeledTextField("       Correlation ID");
+    private JLabeledTextField contentType = new JLabeledTextField("        Content-Type");
+    private JLabeledTextField contentEncoding = new JLabeledTextField("Content Encoding");
 
     private JCheckBox persistent = new JCheckBox("Persistent?", AMQPPublisher.DEFAULT_PERSISTENT);
     private JCheckBox useTx = new JCheckBox("Use Transactions?", AMQPPublisher.DEFAULT_USE_TX);
@@ -115,6 +115,7 @@ public class AMQPPublisherGui extends AMQPSamplerGui {
         sampler.setReplyToQueue(replyToQueue.getText());
         sampler.setCorrelationId(correlationId.getText());
         sampler.setContentType(contentType.getText());
+        sampler.setContentEncoding(contentEncoding.getText());
         sampler.setMessageId(messageId.getText());
         sampler.setHeaders((Arguments) headers.createTestElement());
     }
@@ -130,26 +131,52 @@ public class AMQPPublisherGui extends AMQPSamplerGui {
     @Override
     protected final void init() {
         super.init();
-        persistent.setPreferredSize(new Dimension(100, 25));
-        useTx.setPreferredSize(new Dimension(100, 25));
-        messageRoutingKey.setPreferredSize(new Dimension(100, 25));
-        messageType.setPreferredSize(new Dimension(100, 25));
-        replyToQueue.setPreferredSize(new Dimension(100, 25));
-        correlationId.setPreferredSize(new Dimension(100, 25));
-        contentType.setPreferredSize(new Dimension(100, 25));
-        messageId.setPreferredSize(new Dimension(100, 25));
-        message.setPreferredSize(new Dimension(400, 150));
 
-        mainPanel.add(persistent);
-        mainPanel.add(useTx);
-        mainPanel.add(messageRoutingKey);
-        mainPanel.add(messageType);
-        mainPanel.add(replyToQueue);
-        mainPanel.add(correlationId);
-        mainPanel.add(contentType);
-        mainPanel.add(messageId);
-        mainPanel.add(headers);
-        mainPanel.add(message);
+        mainPanel.add(initMessagePanel());
+    }
+
+    private JPanel initMessagePanel() {
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.anchor = GridBagConstraints.LINE_START;
+        constraints.weightx = 1.0;
+        constraints.weighty = 0.5;
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+
+        JPanel messagePanel = new JPanel(new GridBagLayout());
+        messagePanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Message"));
+        messagePanel.add(persistent, constraints);
+        messagePanel.add(useTx, constraints);
+
+        messagePanel.add(initMessagePropertyPanel(), constraints);
+        message.setPreferredSize(new Dimension(400, 200));
+        messagePanel.add(message, constraints);
+        messagePanel.add(headers, constraints);
+
+        return messagePanel;
+    }
+
+    private JPanel initMessagePropertyPanel() {
+        GridBagConstraints constraints = new GridBagConstraints();
+        constraints.insets = new java.awt.Insets(2, 2, 2, 2);
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.anchor = GridBagConstraints.LINE_START;
+        constraints.weightx = 1.0;
+        constraints.weighty = 0.5;
+        constraints.gridwidth = GridBagConstraints.REMAINDER;
+
+        JPanel propertyPanel = new JPanel(new GridBagLayout());
+        propertyPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), "Properties"));
+
+        propertyPanel.add(messageRoutingKey, constraints);
+        propertyPanel.add(replyToQueue, constraints);
+        propertyPanel.add(messageType, constraints);
+        propertyPanel.add(correlationId, constraints);
+        propertyPanel.add(contentType, constraints);
+        propertyPanel.add(contentEncoding, constraints);
+
+        return propertyPanel;
     }
 
     /**
@@ -164,7 +191,8 @@ public class AMQPPublisherGui extends AMQPSamplerGui {
         messageType.setText("");
         replyToQueue.setText("");
         correlationId.setText("");
-        contentType.setText("");
+        contentType.setText("text/plain");
+        contentEncoding.setText("utf-8");
         messageId.setText("");
         headers.clearGui();
         message.setText("");

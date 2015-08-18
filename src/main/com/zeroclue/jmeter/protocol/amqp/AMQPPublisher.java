@@ -35,20 +35,21 @@ public class AMQPPublisher extends AMQPSampler implements Interruptible {
     private static final Logger log = LoggingManager.getLoggerForClass();
 
     //++ These are JMX names, and must not be changed
-    private final static String MESSAGE = "AMQPPublisher.Message";
+    private final static String MESSAGE             = "AMQPPublisher.Message";
     private final static String MESSAGE_ROUTING_KEY = "AMQPPublisher.MessageRoutingKey";
-    private final static String MESSAGE_TYPE = "AMQPPublisher.MessageType";
-    private final static String REPLY_TO_QUEUE = "AMQPPublisher.ReplyToQueue";
-    private final static String CONTENT_TYPE = "AMQPPublisher.ContentType";
-    private final static String CORRELATION_ID = "AMQPPublisher.CorrelationId";
-    private final static String MESSAGE_ID = "AMQPPublisher.MessageId";
-    private final static String HEADERS = "AMQPPublisher.Headers";
+    private final static String MESSAGE_TYPE        = "AMQPPublisher.MessageType";
+    private final static String REPLY_TO_QUEUE      = "AMQPPublisher.ReplyToQueue";
+    private final static String CONTENT_TYPE        = "AMQPPublisher.ContentType";
+    private final static String CORRELATION_ID      = "AMQPPublisher.CorrelationId";
+    private static final String CONTENT_ENCODING    = "AMQPPublisher.ContentEncoding";
+    private final static String MESSAGE_ID          = "AMQPPublisher.MessageId";
+    private final static String HEADERS             = "AMQPPublisher.Headers";
 
     public static boolean DEFAULT_PERSISTENT = false;
-    private final static String PERSISTENT = "AMQPConsumer.Persistent";
+    private final static String PERSISTENT          = "AMQPConsumer.Persistent";
 
     public static boolean DEFAULT_USE_TX = false;
-    private final static String USE_TX = "AMQPConsumer.UseTx";
+    private final static String USE_TX              = "AMQPConsumer.UseTx";
 
     private transient Channel channel;
 
@@ -123,7 +124,6 @@ public class AMQPPublisher extends AMQPSampler implements Interruptible {
         return result;
     }
 
-
     private byte[] getMessageBytes() {
         return getMessage().getBytes();
     }
@@ -178,6 +178,14 @@ public class AMQPPublisher extends AMQPSampler implements Interruptible {
     
     public void setContentType(String contentType) {
     	setProperty(CONTENT_TYPE, contentType);
+    }
+
+    public void setContentEncoding(String contentEncoding) {
+        setProperty(CONTENT_ENCODING, contentEncoding);
+    }
+
+    public String getContentEncoding() {
+        return getPropertyAsString(CONTENT_ENCODING);
     }
     
     /**
@@ -244,11 +252,11 @@ public class AMQPPublisher extends AMQPSampler implements Interruptible {
 
     protected AMQP.BasicProperties getProperties() {
         final AMQP.BasicProperties.Builder builder = new AMQP.BasicProperties.Builder();
-
         final int deliveryMode = getPersistent() ? 2 : 1;
         final String contentType = StringUtils.defaultIfEmpty(getContentType(), "text/plain");
         
         builder.contentType(contentType)
+            .contentEncoding(getContentEncoding())
             .deliveryMode(deliveryMode)
             .priority(0)
             .correlationId(getCorrelationId())

@@ -33,26 +33,26 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
 
 
     //++ These are JMX names, and must not be changed
-    protected static final String EXCHANGE = "AMQPSampler.Exchange";
-    protected static final String EXCHANGE_TYPE = "AMQPSampler.ExchangeType";
-    protected static final String EXCHANGE_DURABLE = "AMQPSampler.ExchangeDurable";
-    protected static final String EXCHANGE_REDECLARE = "AMQPSampler.ExchangeRedeclare";
-    protected static final String QUEUE = "AMQPSampler.Queue";
-    protected static final String ROUTING_KEY = "AMQPSampler.RoutingKey";
-    protected static final String VIRUTAL_HOST = "AMQPSampler.VirtualHost";
-    protected static final String HOST = "AMQPSampler.Host";
-    protected static final String PORT = "AMQPSampler.Port";
-    protected static final String SSL = "AMQPSampler.SSL";
-    protected static final String USERNAME = "AMQPSampler.Username";
-    protected static final String PASSWORD = "AMQPSampler.Password";
-    private static final String TIMEOUT = "AMQPSampler.Timeout";
-    private static final String ITERATIONS = "AMQPSampler.Iterations";
-    private static final String MESSAGE_TTL = "AMQPSampler.MessageTTL";
-    private static final String MESSAGE_EXPIRES = "AMQPSampler.MessageExpires";
-    private static final String QUEUE_DURABLE = "AMQPSampler.QueueDurable";
-    private static final String QUEUE_REDECLARE = "AMQPSampler.Redeclare";
-    private static final String QUEUE_EXCLUSIVE = "AMQPSampler.QueueExclusive";
-    private static final String QUEUE_AUTO_DELETE = "AMQPSampler.QueueAutoDelete";
+    protected static final String EXCHANGE              = "AMQPSampler.Exchange";
+    protected static final String EXCHANGE_TYPE         = "AMQPSampler.ExchangeType";
+    protected static final String EXCHANGE_DURABLE      = "AMQPSampler.ExchangeDurable";
+    protected static final String EXCHANGE_REDECLARE    = "AMQPSampler.ExchangeRedeclare";
+    protected static final String QUEUE                 = "AMQPSampler.Queue";
+    protected static final String ROUTING_KEY           = "AMQPSampler.RoutingKey";
+    protected static final String VIRUTAL_HOST          = "AMQPSampler.VirtualHost";
+    protected static final String HOST                  = "AMQPSampler.Host";
+    protected static final String PORT                  = "AMQPSampler.Port";
+    protected static final String SSL                   = "AMQPSampler.SSL";
+    protected static final String USERNAME              = "AMQPSampler.Username";
+    protected static final String PASSWORD              = "AMQPSampler.Password";
+    private static final String TIMEOUT                 = "AMQPSampler.Timeout";
+    private static final String ITERATIONS              = "AMQPSampler.Iterations";
+    private static final String MESSAGE_TTL             = "AMQPSampler.MessageTTL";
+    private static final String MESSAGE_EXPIRES         = "AMQPSampler.MessageExpires";
+    private static final String QUEUE_DURABLE           = "AMQPSampler.QueueDurable";
+    private static final String QUEUE_REDECLARE         = "AMQPSampler.Redeclare";
+    private static final String QUEUE_EXCLUSIVE         = "AMQPSampler.QueueExclusive";
+    private static final String QUEUE_AUTO_DELETE       = "AMQPSampler.QueueAutoDelete";
     private static final int DEFAULT_HEARTBEAT = 1;
 
     private transient ConnectionFactory factory;

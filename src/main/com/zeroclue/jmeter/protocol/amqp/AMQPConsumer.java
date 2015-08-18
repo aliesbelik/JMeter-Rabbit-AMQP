@@ -7,6 +7,7 @@ import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.Interruptible;
 import org.apache.jmeter.samplers.SampleResult;
 import org.apache.jmeter.testelement.TestStateListener;
+
 import org.apache.jorphan.logging.LoggingManager;
 import org.apache.log.Logger;
 
@@ -16,8 +17,7 @@ import com.rabbitmq.client.QueueingConsumer;
 import com.rabbitmq.client.ShutdownSignalException;
 
 public class AMQPConsumer extends AMQPSampler implements Interruptible, TestStateListener {
-    private static final int DEFAULT_PREFETCH_COUNT = 0; // unlimited
-
+    private static final int DEFAULT_PREFETCH_COUNT = 0;    // unlimited
     public static final boolean DEFAULT_READ_RESPONSE = true;
     public static final String DEFAULT_PREFETCH_COUNT_STRING = Integer.toString(DEFAULT_PREFETCH_COUNT);
 
@@ -26,10 +26,10 @@ public class AMQPConsumer extends AMQPSampler implements Interruptible, TestStat
     private static final Logger log = LoggingManager.getLoggerForClass();
 
     //++ These are JMX names, and must not be changed
-    private static final String PREFETCH_COUNT = "AMQPConsumer.PrefetchCount";
-    private static final String READ_RESPONSE = "AMQPConsumer.ReadResponse";
-    private static final String PURGE_QUEUE = "AMQPConsumer.PurgeQueue";
-    private static final String AUTO_ACK = "AMQPConsumer.AutoAck";
+    private static final String PREFETCH_COUNT  = "AMQPConsumer.PrefetchCount";
+    private static final String READ_RESPONSE   = "AMQPConsumer.ReadResponse";
+    private static final String PURGE_QUEUE     = "AMQPConsumer.PurgeQueue";
+    private static final String AUTO_ACK        = "AMQPConsumer.AutoAck";
     private static final String RECEIVE_TIMEOUT = "AMQPConsumer.ReceiveTimeout";
 
     private transient Channel channel;
@@ -55,7 +55,7 @@ public class AMQPConsumer extends AMQPSampler implements Interruptible, TestStat
         try {
             initChannel();
 
-           // only do this once per thread. Otherwise it slows down the consumption by appx 50%
+           // only do this once per thread, otherwise it slows down the consumption by appx 50%
             if (consumer == null) {
                 log.info("Creating consumer");
                 consumer = new QueueingConsumer(channel);
@@ -75,9 +75,9 @@ public class AMQPConsumer extends AMQPSampler implements Interruptible, TestStat
          * Perform the sampling
          */
 
-        // aggregate samples.
+        // aggregate samples
         int loop = getIterationsAsInt();
-        result.sampleStart(); // Start timing
+        result.sampleStart();               // start timing
         QueueingConsumer.Delivery delivery = null;
         try {
             for (int idx = 0; idx < loop; idx++) {
@@ -106,11 +106,8 @@ public class AMQPConsumer extends AMQPSampler implements Interruptible, TestStat
 
             result.setResponseData("OK", null);
             result.setDataType(SampleResult.TEXT);
-
             result.setResponseCodeOK();
-
             result.setSuccessful(true);
-
         } catch (ShutdownSignalException e) {
             consumer = null;
             consumerTag = null;
@@ -138,7 +135,7 @@ public class AMQPConsumer extends AMQPSampler implements Interruptible, TestStat
             result.setResponseCode("100");
             result.setResponseMessage(e.getMessage());
         } finally {
-            result.sampleEnd(); // End timimg
+            result.sampleEnd();         // end timing
         }
 
         trace("AMQPConsumer.sample ended");
@@ -205,7 +202,6 @@ public class AMQPConsumer extends AMQPSampler implements Interruptible, TestStat
         return getPropertyAsString(RECEIVE_TIMEOUT, DEFAULT_TIMEOUT_STRING);
     }
 
-
     public void setReceiveTimeout(String s) {
         setProperty(RECEIVE_TIMEOUT, s);
     }
@@ -248,8 +244,6 @@ public class AMQPConsumer extends AMQPSampler implements Interruptible, TestStat
     public boolean getReadResponseAsBoolean() {
         return getPropertyAsBoolean(READ_RESPONSE);
     }
-
-
 
     @Override
     public boolean interrupt() {
@@ -299,10 +293,9 @@ public class AMQPConsumer extends AMQPSampler implements Interruptible, TestStat
         }
 
         super.cleanup();
-
     }
 
-    /*
+    /**
      * Helper method
      */
     private void trace(String s) {
