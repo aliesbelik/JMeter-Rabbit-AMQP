@@ -11,5 +11,6 @@ lib/
 /build/
 /dist/
 /ivy/
+/out/
 *.iml
 .idea

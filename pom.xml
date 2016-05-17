@@ -3,7 +3,7 @@
 
     <groupId>com.github.jlavallee</groupId>
     <artifactId>JMeterAMQPSampler</artifactId>
-    <version>1.1-SNAPSHOT</version>
+    <version>1.2-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>JMeterAMQPSampler</name>
     <description>JMeter plugin to publish and consume messages from RabbitMQ or any AMQP message broker</description>
@@ -11,7 +11,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <dependency.version.jmeter>2.13</dependency.version.jmeter>
-        <dependency.version.amqp>3.5.4</dependency.version.amqp>
+        <dependency.version.amqp>3.6.1</dependency.version.amqp>
     </properties>
 
     <dependencies>
