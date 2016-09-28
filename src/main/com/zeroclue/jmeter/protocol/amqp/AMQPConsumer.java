@@ -20,6 +20,7 @@ public class AMQPConsumer extends AMQPSampler implements Interruptible, TestStat
     private static final int DEFAULT_PREFETCH_COUNT = 0;    // unlimited
     public static final boolean DEFAULT_READ_RESPONSE = true;
     public static final String DEFAULT_PREFETCH_COUNT_STRING = Integer.toString(DEFAULT_PREFETCH_COUNT);
+    public static final String DEFAULT_RESPONSE_CODE = "500";
 
     private static final long serialVersionUID = 7480863561320459091L;
 
@@ -48,14 +49,14 @@ public class AMQPConsumer extends AMQPSampler implements Interruptible, TestStat
         SampleResult result = new SampleResult();
         result.setSampleLabel(getName());
         result.setSuccessful(false);
-        result.setResponseCode("500");
+        result.setResponseCode(DEFAULT_RESPONSE_CODE);
 
         trace("AMQPConsumer.sample()");
 
         try {
             initChannel();
 
-           // only do this once per thread, otherwise it slows down the consumption by appx 50%
+            // only do this once per thread, otherwise it slows down the consumption by appx 50%
             if (consumer == null) {
                 log.info("Creating consumer");
                 consumer = new QueueingConsumer(channel);

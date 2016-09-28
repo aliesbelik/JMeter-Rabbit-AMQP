@@ -43,13 +43,17 @@ public class AMQPPublisher extends AMQPSampler implements Interruptible {
     private final static String CORRELATION_ID      = "AMQPPublisher.CorrelationId";
     private static final String CONTENT_ENCODING    = "AMQPPublisher.ContentEncoding";
     private final static String MESSAGE_ID          = "AMQPPublisher.MessageId";
+    private final static String MESSAGE_PRIORITY    = "AMQPPublisher.MessagePriority";
     private final static String HEADERS             = "AMQPPublisher.Headers";
 
-    public static boolean DEFAULT_PERSISTENT = false;
+    public static boolean DEFAULT_PERSISTENT        = false;
     private final static String PERSISTENT          = "AMQPConsumer.Persistent";
 
-    public static boolean DEFAULT_USE_TX = false;
+    public static boolean DEFAULT_USE_TX            = false;
     private final static String USE_TX              = "AMQPConsumer.UseTx";
+
+    public static final int DEFAULT_MESSAGE_PRIORITY = 0;
+    public static final String DEFAULT_RESPONSE_CODE = "500";
 
     private transient Channel channel;
 
@@ -65,7 +69,7 @@ public class AMQPPublisher extends AMQPSampler implements Interruptible {
         SampleResult result = new SampleResult();
         result.setSampleLabel(getName());
         result.setSuccessful(false);
-        result.setResponseCode("500");
+        result.setResponseCode(DEFAULT_RESPONSE_CODE);
 
         try {
             initChannel();
@@ -75,16 +79,16 @@ public class AMQPPublisher extends AMQPSampler implements Interruptible {
             return result;
         }
 
-        String data = getMessage(); // Sampler data
+        String data = getMessage();     // sampler data
 
         result.setSampleLabel(getTitle());
         /*
          * Perform the sampling
          */
 
-        // aggregate samples.
+        // aggregate samples
         int loop = getIterationsAsInt();
-        result.sampleStart(); // Start timing
+        result.sampleStart();   // start timing
         try {
             AMQP.BasicProperties messageProperties = getProperties();
             byte[] messageBytes = getMessageBytes();
@@ -95,9 +99,11 @@ public class AMQPPublisher extends AMQPSampler implements Interruptible {
                 // seen by iostat -cd 1. TPS value remains at 0.
 
                 channel.basicPublish(getExchange(), getMessageRoutingKey(), messageProperties, messageBytes);
+                //System.out.println(" [x] Sent message: '" + data + "'");
+                //System.out.println(" [x] Message properties: '" + messageProperties.toString() + "'");
             }
 
-            // commit the sample.
+            // commit the sample
             if (getUseTx()) {
                 channel.txCommit();
             }
@@ -118,7 +124,7 @@ public class AMQPPublisher extends AMQPSampler implements Interruptible {
             result.setResponseMessage(ex.toString());
         }
         finally {
-            result.sampleEnd(); // End timing
+            result.sampleEnd(); // end timing
         }
 
         return result;
@@ -187,7 +193,7 @@ public class AMQPPublisher extends AMQPSampler implements Interruptible {
     public String getContentEncoding() {
         return getPropertyAsString(CONTENT_ENCODING);
     }
-    
+
     /**
      * @return the correlation identifier for the sample
      */
@@ -208,6 +214,21 @@ public class AMQPPublisher extends AMQPSampler implements Interruptible {
 
     public void setMessageId(String content) {
         setProperty(MESSAGE_ID, content);
+    }
+
+    /**
+     * @return the message priority for the sample
+     */
+    public String getMessagePriority() {
+        return getPropertyAsString(MESSAGE_PRIORITY);
+    }
+
+    public void setMessagePriority(String content) {
+        setProperty(MESSAGE_PRIORITY, content);
+    }
+
+    public int getMessagePriorityAsInt() {
+        return getPropertyAsInt(MESSAGE_PRIORITY);
     }
 
     public Arguments getHeaders() {
@@ -258,32 +279,42 @@ public class AMQPPublisher extends AMQPSampler implements Interruptible {
         builder.contentType(contentType)
             .contentEncoding(getContentEncoding())
             .deliveryMode(deliveryMode)
-            .priority(0)
             .correlationId(getCorrelationId())
             .replyTo(getReplyToQueue())
             .type(getMessageType())
-            .headers(prepareHeaders())
-            .build();
-        if (getMessageId() != null && getMessageId().isEmpty()) {
+            .headers(prepareHeaders());
+
+        if (getMessageId() != null && !getMessageId().isEmpty()) {
             builder.messageId(getMessageId());
         }
+
+        if (getMessagePriority() != null && !getMessagePriority().isEmpty()) {
+            builder.priority(getMessagePriorityAsInt());
+        } else {
+            builder.priority(DEFAULT_MESSAGE_PRIORITY);
+        }
+
         return builder.build();
     }
 
     protected boolean initChannel() throws IOException, NoSuchAlgorithmException, KeyManagementException {
         boolean ret = super.initChannel();
+
         if (getUseTx()) {
             channel.txSelect();
         }
+
         return ret;
     }
 
     private Map<String, Object> prepareHeaders() {
         Map<String, Object> result = new HashMap<String, Object>();
         Map<String, String> source = getHeaders().getArgumentsAsMap();
+
         for (Map.Entry<String, String> item : source.entrySet()) {
             result.put(item.getKey(), item.getValue());
         }
+
         return result;
     }
 }

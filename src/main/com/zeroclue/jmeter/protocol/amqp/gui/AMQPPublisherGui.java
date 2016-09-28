@@ -38,6 +38,7 @@ public class AMQPPublisherGui extends AMQPSamplerGui {
     private JLabeledTextField replyToQueue = new JLabeledTextField("   Reply-To Queue");
     private JLabeledTextField messageId = new JLabeledTextField("           Message ID");
     private JLabeledTextField correlationId = new JLabeledTextField("       Correlation ID");
+    private JLabeledTextField messagePriority = new JLabeledTextField(" Message Priority");
     private JLabeledTextField contentType = new JLabeledTextField("        Content-Type");
     private JLabeledTextField contentEncoding = new JLabeledTextField("Content Encoding");
 
@@ -80,6 +81,7 @@ public class AMQPPublisherGui extends AMQPSamplerGui {
         replyToQueue.setText(sampler.getReplyToQueue());
         contentType.setText(sampler.getContentType());
         correlationId.setText(sampler.getCorrelationId());
+        messagePriority.setText(sampler.getMessagePriority());
         messageId.setText(sampler.getMessageId());
         message.setText(sampler.getMessage());
         configureHeaders(sampler);
@@ -114,6 +116,7 @@ public class AMQPPublisherGui extends AMQPSamplerGui {
         sampler.setMessageType(messageType.getText());
         sampler.setReplyToQueue(replyToQueue.getText());
         sampler.setCorrelationId(correlationId.getText());
+        sampler.setMessagePriority(messagePriority.getText());
         sampler.setContentType(contentType.getText());
         sampler.setContentEncoding(contentEncoding.getText());
         sampler.setMessageId(messageId.getText());
@@ -173,6 +176,8 @@ public class AMQPPublisherGui extends AMQPSamplerGui {
         propertyPanel.add(replyToQueue, constraints);
         propertyPanel.add(messageType, constraints);
         propertyPanel.add(correlationId, constraints);
+        propertyPanel.add(messageId, constraints);
+        propertyPanel.add(messagePriority, constraints);
         propertyPanel.add(contentType, constraints);
         propertyPanel.add(contentEncoding, constraints);
 
@@ -191,6 +196,7 @@ public class AMQPPublisherGui extends AMQPSamplerGui {
         messageType.setText("");
         replyToQueue.setText("");
         correlationId.setText("");
+        messagePriority.setText("");
         contentType.setText("text/plain");
         contentEncoding.setText("utf-8");
         messageId.setText("");

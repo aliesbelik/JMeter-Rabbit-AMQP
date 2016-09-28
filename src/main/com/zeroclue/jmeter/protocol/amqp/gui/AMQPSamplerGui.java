@@ -30,6 +30,7 @@ public abstract class AMQPSamplerGui extends AbstractSamplerGui {
     protected JLabeledTextField routingKey = new JLabeledTextField("   Routing Key");
     protected JLabeledTextField messageTTL = new JLabeledTextField("Message TTL");
     protected JLabeledTextField messageExpires = new JLabeledTextField("           Expires");
+    protected JLabeledTextField maxPriority = new JLabeledTextField("   Max Priority");
     private final JCheckBox queueDurable = new JCheckBox("Durable?", true);
     private final JCheckBox queueRedeclare = new JCheckBox("Redeclare?", AMQPSampler.DEFAULT_QUEUE_REDECLARE);
     private final JCheckBox queueExclusive = new JCheckBox("Exclusive", true);
@@ -66,6 +67,7 @@ public abstract class AMQPSamplerGui extends AbstractSamplerGui {
 
         messageTTL.setText(sampler.getMessageTTL());
         messageExpires.setText(sampler.getMessageExpires());
+        maxPriority.setText(sampler.getMaxPriority());
         queueDurable.setSelected(sampler.queueDurable());
         queueExclusive.setSelected(sampler.queueExclusive());
         queueAutoDelete.setSelected(sampler.queueAutoDelete());
@@ -96,6 +98,7 @@ public abstract class AMQPSamplerGui extends AbstractSamplerGui {
         virtualHost.setText("/");
         messageTTL.setText("");
         messageExpires.setText("");
+        maxPriority.setText("");
         exchangeType.setText("direct");
         queueDurable.setSelected(true);
         queueExclusive.setSelected(false);
@@ -129,6 +132,7 @@ public abstract class AMQPSamplerGui extends AbstractSamplerGui {
         sampler.setVirtualHost(virtualHost.getText());
         sampler.setMessageTTL(messageTTL.getText());
         sampler.setMessageExpires(messageExpires.getText());
+        sampler.setMaxPriority(maxPriority.getText());
         sampler.setExchangeType(exchangeType.getText());
         sampler.setQueueDurable(queueDurable.isSelected());
         sampler.setQueueExclusive(queueExclusive.isSelected());
@@ -214,6 +218,10 @@ public abstract class AMQPSamplerGui extends AbstractSamplerGui {
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 3;
         queueSettings.add(messageExpires, gridBagConstraints);
+
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 4;
+        queueSettings.add(maxPriority, gridBagConstraints);
 
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;

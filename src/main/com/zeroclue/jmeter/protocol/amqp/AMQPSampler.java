@@ -29,6 +29,9 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
     public static final int DEFAULT_ITERATIONS = 1;
     public static final String DEFAULT_ITERATIONS_STRING = Integer.toString(DEFAULT_ITERATIONS);
 
+    public static final int DEFAULT_MIN_PRIORITY = 0;
+    public static final int DEFAULT_MAX_PRIORITY = 255;
+
     private static final Logger log = LoggingManager.getLoggerForClass();
 
 
@@ -39,7 +42,7 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
     protected static final String EXCHANGE_REDECLARE    = "AMQPSampler.ExchangeRedeclare";
     protected static final String QUEUE                 = "AMQPSampler.Queue";
     protected static final String ROUTING_KEY           = "AMQPSampler.RoutingKey";
-    protected static final String VIRUTAL_HOST          = "AMQPSampler.VirtualHost";
+    protected static final String VIRTUAL_HOST          = "AMQPSampler.VirtualHost";
     protected static final String HOST                  = "AMQPSampler.Host";
     protected static final String PORT                  = "AMQPSampler.Port";
     protected static final String SSL                   = "AMQPSampler.SSL";
@@ -49,6 +52,7 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
     private static final String ITERATIONS              = "AMQPSampler.Iterations";
     private static final String MESSAGE_TTL             = "AMQPSampler.MessageTTL";
     private static final String MESSAGE_EXPIRES         = "AMQPSampler.MessageExpires";
+    private static final String MAX_PRIORITY            = "AMQPSampler.MaxPriority";
     private static final String QUEUE_DURABLE           = "AMQPSampler.QueueDurable";
     private static final String QUEUE_REDECLARE         = "AMQPSampler.Redeclare";
     private static final String QUEUE_EXCLUSIVE         = "AMQPSampler.QueueExclusive";
@@ -70,7 +74,7 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
             if(channel != null && !channel.isOpen()){
                 log.warn("channel " + channel.getChannelNumber()
                         + " closed unexpectedly: ", channel.getCloseReason());
-                channel = null; // so we re-open it below
+                channel = null;     // so we re-open it below
             }
 
             if(channel == null) {
@@ -88,7 +92,7 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
                     AMQP.Queue.DeclareOk declareQueueResp = channel.queueDeclare(getQueue(), queueDurable(), queueExclusive(), queueAutoDelete(), getQueueArguments());
                 }
 
-                if(!StringUtils.isBlank(getExchange())) { //Use a named exchange
+                if(!StringUtils.isBlank(getExchange())) {   // use a named exchange
                     if (getExchangeRedeclare()) {
                         deleteExchange();
                     }
@@ -105,13 +109,12 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
                     +"\n\t exchange(D)? " + getExchangeDurable()
                     +"\n\t routing key: " + getRoutingKey()
                     +"\n\t arguments: " + getQueueArguments()
-                    );
-
+                );
             }
         }
         catch(Exception ex) {
             log.debug(ex.toString(), ex);
-            // ignore it.
+            // ignore it
         }
         return true;
     }
@@ -124,6 +127,9 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
 
         if(getMessageExpires() != null && !getMessageExpires().isEmpty())
             arguments.put("x-expires", getMessageExpiresAsInt());
+
+        if(getMaxPriority() != null && !getMaxPriority().isEmpty())
+            arguments.put("x-max-priority", getMaxPriorityAsInt());
 
         return arguments;
     }
@@ -149,7 +155,6 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
         return getPropertyAsString(TIMEOUT, DEFAULT_TIMEOUT_STRING);
     }
 
-
     public void setTimeout(String s) {
         setProperty(TIMEOUT, s);
     }
@@ -174,7 +179,6 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
         setProperty(EXCHANGE, name);
     }
 
-
     public boolean getExchangeDurable() {
         return getPropertyAsBoolean(EXCHANGE_DURABLE);
     }
@@ -183,7 +187,6 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
         setProperty(EXCHANGE_DURABLE, durable);
     }
 
-
     public String getExchangeType() {
         return getPropertyAsString(EXCHANGE_TYPE);
     }
@@ -191,7 +194,6 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
     public void setExchangeType(String name) {
         setProperty(EXCHANGE_TYPE, name);
     }
-
 
     public Boolean getExchangeRedeclare() {
         return getPropertyAsBoolean(EXCHANGE_REDECLARE);
@@ -209,7 +211,6 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
         setProperty(QUEUE, name);
     }
 
-
     public String getRoutingKey() {
         return getPropertyAsString(ROUTING_KEY);
     }
@@ -218,15 +219,13 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
         setProperty(ROUTING_KEY, name);
     }
 
-
     public String getVirtualHost() {
-        return getPropertyAsString(VIRUTAL_HOST);
+        return getPropertyAsString(VIRTUAL_HOST);
     }
 
     public void setVirtualHost(String name) {
-        setProperty(VIRUTAL_HOST, name);
+        setProperty(VIRTUAL_HOST, name);
     }
-
 
     public String getMessageTTL() {
         return getPropertyAsString(MESSAGE_TTL);
@@ -243,7 +242,6 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
         return getPropertyAsInt(MESSAGE_TTL);
     }
 
-
     public String getMessageExpires() {
         return getPropertyAsString(MESSAGE_EXPIRES);
     }
@@ -259,6 +257,24 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
         return getPropertyAsInt(MESSAGE_EXPIRES);
     }
 
+    public String getMaxPriority() {
+        return getPropertyAsString(MAX_PRIORITY);
+    }
+
+    public void setMaxPriority(String name) {
+        setProperty(MAX_PRIORITY, name);
+    }
+
+    protected Integer getMaxPriorityAsInt() {
+        // The message priority field is defined as an unsigned byte, so in practice priorities should be between 0 and 255
+        if (getPropertyAsInt(MAX_PRIORITY) < DEFAULT_MIN_PRIORITY) {
+            return DEFAULT_MIN_PRIORITY;
+        } else if (getPropertyAsInt(MAX_PRIORITY) > DEFAULT_MAX_PRIORITY) {
+            return DEFAULT_MAX_PRIORITY;
+        }
+
+        return getPropertyAsInt(MAX_PRIORITY);
+    }
 
     public String getHost() {
         return getPropertyAsString(HOST);
@@ -267,7 +283,6 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
     public void setHost(String name) {
         setProperty(HOST, name);
     }
-
 
     public String getPort() {
         return getPropertyAsString(PORT);
@@ -296,7 +311,6 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
         return getPropertyAsBoolean(SSL);
     }
 
-
     public String getUsername() {
         return getPropertyAsString(USERNAME);
     }
@@ -304,7 +318,6 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
     public void setUsername(String name) {
         setProperty(USERNAME, name);
     }
-
 
     public String getPassword() {
         return getPropertyAsString(PASSWORD);
@@ -371,7 +384,6 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
         return getPropertyAsBoolean(QUEUE_AUTO_DELETE);
     }
 
-
     public Boolean getQueueRedeclare() {
         return getPropertyAsBoolean(QUEUE_REDECLARE);
     }
@@ -382,7 +394,7 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
 
     protected void cleanup() {
         try {
-            //getChannel().close();   // closing the connection will close the channel if it's still open
+            // getChannel().close();   // closing the connection will close the channel if it's still open
             if(connection != null && connection.isOpen())
                 connection.close();
         } catch (IOException e) {
@@ -398,7 +410,6 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
 
     @Override
     public void threadStarted() {
-
     }
 
     protected Channel createChannel() throws IOException, NoSuchAlgorithmException, KeyManagementException {
@@ -424,7 +435,7 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
                       +"\n\t timeout: " + getTimeout()
                       +"\n\t heartbeat: " + factory.getRequestedHeartbeat()
                       +"\nin " + this
-                      );
+                );
 
                 String[] hosts = getHost().split(",");
                 Address[] addresses = new Address[hosts.length];
@@ -460,7 +471,7 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
         }
         catch(Exception ex) {
             log.debug(ex.toString(), ex);
-            // ignore it.
+            // ignore it
         }
         finally {
             if (channel.isOpen())  {
@@ -470,7 +481,7 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
     }
 
     protected void deleteExchange() throws IOException, NoSuchAlgorithmException, KeyManagementException, TimeoutException {
-        // use a different channel since channel closes on exception.
+        // use a different channel since channel closes on exception
         Channel channel = createChannel();
         try {
             log.info("Deleting exchange " + getExchange());
@@ -478,7 +489,7 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
         }
         catch(Exception ex) {
             log.debug(ex.toString(), ex);
-            // ignore it.
+            // ignore it
         }
         finally {
             if (channel.isOpen())  {
