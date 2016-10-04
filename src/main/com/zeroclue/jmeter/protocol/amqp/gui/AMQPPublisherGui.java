@@ -124,7 +124,7 @@ public class AMQPPublisherGui extends AMQPSamplerGui {
     }
 
     @Override
-    protected void setMainPanel(JPanel panel){
+    protected void setMainPanel(JPanel panel) {
         mainPanel = panel;
     }
 
@@ -204,8 +204,7 @@ public class AMQPPublisherGui extends AMQPSamplerGui {
         message.setText("");
     }
 
-    private void configureHeaders(AMQPPublisher sampler)
-    {
+    private void configureHeaders(AMQPPublisher sampler) {
         Arguments sampleHeaders = sampler.getHeaders();
         if (sampleHeaders != null) {
             headers.configure(sampleHeaders);

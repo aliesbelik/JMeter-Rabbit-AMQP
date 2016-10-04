@@ -82,6 +82,7 @@ public class AMQPPublisher extends AMQPSampler implements Interruptible {
         String data = getMessage();     // sampler data
 
         result.setSampleLabel(getTitle());
+
         /*
          * Perform the sampling
          */
@@ -89,6 +90,7 @@ public class AMQPPublisher extends AMQPSampler implements Interruptible {
         // aggregate samples
         int loop = getIterationsAsInt();
         result.sampleStart();   // start timing
+
         try {
             AMQP.BasicProperties messageProperties = getProperties();
             byte[] messageBytes = getMessageBytes();
@@ -111,9 +113,13 @@ public class AMQPPublisher extends AMQPSampler implements Interruptible {
             /*
              * Set up the sample result details
              */
+
             result.setSamplerData(data);
-            result.setResponseData(new String(messageBytes), null);
+            //result.setResponseData(new String(messageBytes), null);
+            result.setResponseData("OK", null);
             result.setDataType(SampleResult.TEXT);
+
+            result.setRequestHeaders(formatHeaders());
 
             result.setResponseCodeOK();
             result.setResponseMessage("OK");
@@ -122,9 +128,8 @@ public class AMQPPublisher extends AMQPSampler implements Interruptible {
             log.debug(ex.getMessage(), ex);
             result.setResponseCode("000");
             result.setResponseMessage(ex.toString());
-        }
-        finally {
-            result.sampleEnd(); // end timing
+        } finally {
+            result.sampleEnd();     // end timing
         }
 
         return result;
@@ -244,7 +249,7 @@ public class AMQPPublisher extends AMQPSampler implements Interruptible {
     }
 
     public void setPersistent(Boolean persistent) {
-       setProperty(PERSISTENT, persistent);
+        setProperty(PERSISTENT, persistent);
     }
 
     public Boolean getUseTx() {
@@ -252,7 +257,7 @@ public class AMQPPublisher extends AMQPSampler implements Interruptible {
     }
 
     public void setUseTx(Boolean tx) {
-       setProperty(USE_TX, tx);
+        setProperty(USE_TX, tx);
     }
 
     @Override
@@ -316,5 +321,16 @@ public class AMQPPublisher extends AMQPSampler implements Interruptible {
         }
 
         return result;
+    }
+
+    private String formatHeaders() {
+        Map<String, String> headers = getHeaders().getArgumentsAsMap();
+        StringBuilder sb = new StringBuilder();
+
+        for (String key : headers.keySet()) {
+            sb.append(key).append(": ").append(headers.get(key)).append("\n");
+        }
+
+        return sb.toString();
     }
 }

@@ -34,7 +34,6 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
 
     private static final Logger log = LoggingManager.getLoggerForClass();
 
-
     //++ These are JMX names, and must not be changed
     protected static final String EXCHANGE              = "AMQPSampler.Exchange";
     protected static final String EXCHANGE_TYPE         = "AMQPSampler.ExchangeType";
@@ -71,20 +70,20 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
         Channel channel = getChannel();
 
         try {
-            if(channel != null && !channel.isOpen()){
+            if (channel != null && !channel.isOpen()) {
                 log.warn("channel " + channel.getChannelNumber()
                         + " closed unexpectedly: ", channel.getCloseReason());
                 channel = null;     // so we re-open it below
             }
 
-            if(channel == null) {
+            if (channel == null) {
                 channel = createChannel();
                 setChannel(channel);
 
                 //TODO: Break out queue binding
                 boolean queueConfigured = (getQueue() != null && !getQueue().isEmpty());
 
-                if(queueConfigured) {
+                if (queueConfigured) {
                     if (getQueueRedeclare()) {
                         deleteQueue();
                     }
@@ -92,12 +91,13 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
                     AMQP.Queue.DeclareOk declareQueueResp = channel.queueDeclare(getQueue(), queueDurable(), queueExclusive(), queueAutoDelete(), getQueueArguments());
                 }
 
-                if(!StringUtils.isBlank(getExchange())) {   // use a named exchange
+                if (!StringUtils.isBlank(getExchange())) {   // use a named exchange
                     if (getExchangeRedeclare()) {
                         deleteExchange();
                     }
 
                     AMQP.Exchange.DeclareOk declareExchangeResp = channel.exchangeDeclare(getExchange(), getExchangeType(), getExchangeDurable());
+
                     if (queueConfigured) {
                         channel.queueBind(getQueue(), getExchange(), getRoutingKey());
                     }
@@ -111,24 +111,24 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
                     +"\n\t arguments: " + getQueueArguments()
                 );
             }
-        }
-        catch(Exception ex) {
+        } catch (Exception ex) {
             log.debug(ex.toString(), ex);
             // ignore it
         }
+
         return true;
     }
 
     private Map<String, Object> getQueueArguments() {
         Map<String, Object> arguments = new HashMap<String, Object>();
 
-        if(getMessageTTL() != null && !getMessageTTL().isEmpty())
+        if (getMessageTTL() != null && !getMessageTTL().isEmpty())
             arguments.put("x-message-ttl", getMessageTTLAsInt());
 
-        if(getMessageExpires() != null && !getMessageExpires().isEmpty())
+        if (getMessageExpires() != null && !getMessageExpires().isEmpty())
             arguments.put("x-expires", getMessageExpiresAsInt());
 
-        if(getMaxPriority() != null && !getMaxPriority().isEmpty())
+        if (getMaxPriority() != null && !getMaxPriority().isEmpty())
             arguments.put("x-max-priority", getMaxPriorityAsInt());
 
         return arguments;
@@ -148,6 +148,7 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
         if (getPropertyAsInt(TIMEOUT) < 1) {
             return DEFAULT_TIMEOUT;
         }
+
         return getPropertyAsInt(TIMEOUT);
     }
 
@@ -239,6 +240,7 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
         if (getPropertyAsInt(MESSAGE_TTL) < 1) {
             return null;
         }
+
         return getPropertyAsInt(MESSAGE_TTL);
     }
 
@@ -254,6 +256,7 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
         if (getPropertyAsInt(MESSAGE_EXPIRES) < 1) {
             return null;
         }
+
         return getPropertyAsInt(MESSAGE_EXPIRES);
     }
 
@@ -296,6 +299,7 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
         if (getPropertyAsInt(PORT) < 1) {
             return DEFAULT_PORT;
         }
+
         return getPropertyAsInt(PORT);
     }
 
@@ -389,13 +393,13 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
     }
 
     public void setQueueRedeclare(Boolean content) {
-       setProperty(QUEUE_REDECLARE, content);
+        setProperty(QUEUE_REDECLARE, content);
     }
 
     protected void cleanup() {
         try {
             // getChannel().close();   // closing the connection will close the channel if it's still open
-            if(connection != null && connection.isOpen())
+            if (connection != null && connection.isOpen())
                 connection.close();
         } catch (IOException e) {
             log.error("Failed to close connection", e);
@@ -450,13 +454,12 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
 
              Channel channel = connection.createChannel();
 
-             if(!channel.isOpen()){
+             if (!channel.isOpen()) {
                  log.fatalError("Failed to open channel: " + channel.getCloseReason().getLocalizedMessage());
              }
 
              return channel;
-         }
-         catch(Exception ex) {
+         } catch(Exception ex) {
              log.debug(ex.toString(), ex);
              return null;
          }
@@ -465,16 +468,15 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
     protected void deleteQueue() throws IOException, NoSuchAlgorithmException, KeyManagementException, TimeoutException {
         // use a different channel since channel closes on exception.
         Channel channel = createChannel();
+
         try {
             log.info("Deleting queue " + getQueue());
             channel.queueDelete(getQueue());
-        }
-        catch(Exception ex) {
+        } catch(Exception ex) {
             log.debug(ex.toString(), ex);
             // ignore it
-        }
-        finally {
-            if (channel.isOpen())  {
+        } finally {
+            if (channel.isOpen()) {
                 channel.close();
             }
         }
@@ -483,16 +485,15 @@ public abstract class AMQPSampler extends AbstractSampler implements ThreadListe
     protected void deleteExchange() throws IOException, NoSuchAlgorithmException, KeyManagementException, TimeoutException {
         // use a different channel since channel closes on exception
         Channel channel = createChannel();
+
         try {
             log.info("Deleting exchange " + getExchange());
             channel.exchangeDelete(getExchange());
-        }
-        catch(Exception ex) {
+        } catch(Exception ex) {
             log.debug(ex.toString(), ex);
             // ignore it
-        }
-        finally {
-            if (channel.isOpen())  {
+        } finally {
+            if (channel.isOpen()) {
                 channel.close();
             }
         }

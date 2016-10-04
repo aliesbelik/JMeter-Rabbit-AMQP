@@ -2,6 +2,7 @@ package com.zeroclue.jmeter.protocol.amqp;
 
 import java.io.IOException;
 import java.security.*;
+import java.util.Map;
 
 import org.apache.jmeter.samplers.Entry;
 import org.apache.jmeter.samplers.Interruptible;
@@ -27,11 +28,16 @@ public class AMQPConsumer extends AMQPSampler implements Interruptible, TestStat
     private static final Logger log = LoggingManager.getLoggerForClass();
 
     //++ These are JMX names, and must not be changed
-    private static final String PREFETCH_COUNT  = "AMQPConsumer.PrefetchCount";
-    private static final String READ_RESPONSE   = "AMQPConsumer.ReadResponse";
-    private static final String PURGE_QUEUE     = "AMQPConsumer.PurgeQueue";
-    private static final String AUTO_ACK        = "AMQPConsumer.AutoAck";
-    private static final String RECEIVE_TIMEOUT = "AMQPConsumer.ReceiveTimeout";
+    private static final String PREFETCH_COUNT          = "AMQPConsumer.PrefetchCount";
+    private static final String READ_RESPONSE           = "AMQPConsumer.ReadResponse";
+    private static final String PURGE_QUEUE             = "AMQPConsumer.PurgeQueue";
+    private static final String AUTO_ACK                = "AMQPConsumer.AutoAck";
+    private static final String RECEIVE_TIMEOUT         = "AMQPConsumer.ReceiveTimeout";
+
+    public static final String TIMESTAMP_PARAMETER      = "Timestamp";
+    public static final String EXCHANGE_PARAMETER       = "Exchange";
+    public static final String ROUTING_KEY_PARAMETER    = "Routing Key";
+    public static final String DELIVERY_TAG_PARAMETER   = "Delivery Tag";
 
     private transient Channel channel;
     private transient QueueingConsumer consumer;
@@ -78,13 +84,14 @@ public class AMQPConsumer extends AMQPSampler implements Interruptible, TestStat
 
         // aggregate samples
         int loop = getIterationsAsInt();
-        result.sampleStart();               // start timing
+        result.sampleStart();                      // start timing
         QueueingConsumer.Delivery delivery = null;
+
         try {
             for (int idx = 0; idx < loop; idx++) {
                 delivery = consumer.nextDelivery(getReceiveTimeoutAsInt());
 
-                if(delivery == null){
+                if (delivery == null) {
                     result.setResponseMessage("timed out");
                     return result;
                 }
@@ -95,9 +102,8 @@ public class AMQPConsumer extends AMQPSampler implements Interruptible, TestStat
                 if (getReadResponseAsBoolean()) {
                     String response = new String(delivery.getBody());
                     result.setSamplerData(response);
-                    result.setResponseMessage(response);
-                }
-                else {
+                    result.setResponseData(response, null);
+                } else {
                     result.setSamplerData("Read response is false.");
                 }
 
@@ -105,8 +111,14 @@ public class AMQPConsumer extends AMQPSampler implements Interruptible, TestStat
                     channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
             }
 
-            result.setResponseData("OK", null);
+            /*
+             * Set up the sample result details
+             */
+
+            result.setResponseMessage("OK");
             result.setDataType(SampleResult.TEXT);
+            result.setResponseHeaders(delivery != null ? formatHeaders(delivery) : null);
+
             result.setResponseCodeOK();
             result.setSuccessful(true);
         } catch (ShutdownSignalException e) {
@@ -196,6 +208,7 @@ public class AMQPConsumer extends AMQPSampler implements Interruptible, TestStat
         if (getPropertyAsInt(RECEIVE_TIMEOUT) < 1) {
             return DEFAULT_TIMEOUT;
         }
+
         return getPropertyAsInt(RECEIVE_TIMEOUT);
     }
 
@@ -212,7 +225,7 @@ public class AMQPConsumer extends AMQPSampler implements Interruptible, TestStat
     }
 
     public void setPrefetchCount(String prefetchCount) {
-       setProperty(PREFETCH_COUNT, prefetchCount);
+        setProperty(PREFETCH_COUNT, prefetchCount);
     }
 
     public int getPrefetchCountAsInt() {
@@ -258,8 +271,9 @@ public class AMQPConsumer extends AMQPSampler implements Interruptible, TestStat
     @Override
     public void testEnded() {
 
-        if(purgeQueue()){
+        if (purgeQueue()) {
             log.info("Purging queue " + getQueue());
+
             try {
                 channel.queuePurge(getQueue());
             } catch (IOException e) {
@@ -287,7 +301,7 @@ public class AMQPConsumer extends AMQPSampler implements Interruptible, TestStat
 
         try {
             if (consumerTag != null) {
-               channel.basicCancel(consumerTag);
+                channel.basicCancel(consumerTag);
             }
         } catch(IOException e) {
             log.error("Couldn't safely cancel the sample " + consumerTag, e);
@@ -309,6 +323,25 @@ public class AMQPConsumer extends AMQPSampler implements Interruptible, TestStat
     protected boolean initChannel() throws IOException, NoSuchAlgorithmException, KeyManagementException {
         boolean ret = super.initChannel();
         channel.basicQos(getPrefetchCountAsInt());
+
         return ret;
+    }
+
+    private String formatHeaders(QueueingConsumer.Delivery delivery) {
+        Map<String, Object> headers = delivery.getProperties().getHeaders();
+        StringBuilder sb = new StringBuilder();
+
+        sb.append(TIMESTAMP_PARAMETER).append(": ")
+                .append(delivery.getProperties().getTimestamp() != null ?
+                        delivery.getProperties().getTimestamp().getTime() : "").append("\n");
+        sb.append(EXCHANGE_PARAMETER).append(": ").append(delivery.getEnvelope().getExchange()).append("\n");
+        sb.append(ROUTING_KEY_PARAMETER).append(": ").append(delivery.getEnvelope().getRoutingKey()).append("\n");
+        sb.append(DELIVERY_TAG_PARAMETER).append(": ").append(delivery.getEnvelope().getDeliveryTag()).append("\n");
+
+        for (String key : headers.keySet()) {
+            sb.append(key).append(": ").append(headers.get(key)).append("\n");
+        }
+
+        return sb.toString();
     }
 }
